@@ -3,8 +3,9 @@ module Calculator
   , evaluate
   ) where
 
-import           Text.Parsec        (char, digit, many1, parse, (<|>))
-import           Text.Parsec.String (Parser)
+import           Control.Applicative (pure, (*>), (<$>), (<*))
+import           Text.Parsec         (char, digit, many1, parse, (<|>))
+import           Text.Parsec.String  (Parser)
 
 data Expression
   = Plus Expression Expression
@@ -32,40 +33,22 @@ evaluate (Value x)    = x
 expression :: Parser Expression
 expression = do
   t <- term
-  addition t <|> subtraction t <|> return t
-  where
-    addition t = do
-      char '+'
-      e <- expression
-      return $ Plus t e
-    subtraction t = do
-      char '-'
-      e <- expression
-      return $ Minus t e
+  Plus t <$> (char '+' *> expression)
+    <|> Minus t <$> (char '-' *> expression)
+    <|> pure t
 
 term :: Parser Expression
 term = do
   f <- factor
-  multiplication f <|> division f <|> return f
-  where
-    multiplication f = do
-      char '*'
-      t <- term
-      return $ Times f t
-    division f = do
-      char '/'
-      t <- term
-      return $ Divide f t
+  Times f <$> (char '*' *> term)
+    <|> Divide f <$> (char '/' *> term)
+    <|> pure f
 
 factor :: Parser Expression
 factor =
-  bracket <|> number
+  (char '(' *> expression <* char ')')
+    <|> number
   where
-    bracket = do
-      char '('
-      e <- expression
-      char ')'
-      return e
     number = do
       xs <- many1 digit
-      return $ Value $ read xs
+      pure $ Value . read $ xs
