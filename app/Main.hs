@@ -1,6 +1,11 @@
 module Main where
 
-import Lib
+import           Calculator (calculator)
 
 main :: IO ()
-main = someFunc
+main = loop
+  where
+    loop = do
+      input <- getLine
+      putStrLn $ calculator input
+      loop
