@@ -1,0 +1,30 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      - image: fpco/stack-build:lts-12.19
+
+    working_directory: ~/calculator
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+          - dependencies-{{ checksum "package.yaml" }}
+          - dependencies-
+
+      - run: stack test
+
+      - save_cache:
+          paths:
+            - ~/.stack
+          key: dependencies-{{ checksum "package.yaml" }}
+
+workflows:
+  version: 2
+
+  test:
+    jobs:
+      - test
