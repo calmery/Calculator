@@ -1,6 +1,5 @@
 module Calculator
   ( calculator
-  , evaluate
   ) where
 
 import           Control.Applicative (pure, (*>), (<$>), (<*))
